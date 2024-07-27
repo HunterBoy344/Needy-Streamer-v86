@@ -1,0 +1,241 @@
+<title>NEEDY STREAMER v86</title><!-- not BASIC! -->
+
+<style>
+  @font-face {
+    font-family: 'PixelMplus10'; /*a name to be used later*/
+    src: url('PixelMplus10-Regular.ttf'); /*URL to font*/
+  }
+  @keyframes fadeout {
+    0%   {filter: brightness(1) invert(0) contrast(1);}
+    5% {filter: brightness(1) invert(1) contrast(10);}
+    100% {filter: brightness(1) invert(1) contrast(10);}
+  }
+  @keyframes fadein {
+    0%   {filter: brightness(0.5) saturate(5) blur(10px);}
+    5%  {filter: brightness(2.2) saturate(2) blur(1px);}
+    100% {filter: brightness(1) saturate(1) blur(0px);}
+  }
+  html, body {font-family: "PixelMplus10"; margin: 0; height: 100%; width: 100%; overflow: hidden; background: black; position:relative; line-height: 1;}
+  #layout_table {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    table-layout: fixed;
+    padding:0;
+    margin:0;
+    border: none;
+    border-collapse:collapse;
+  }
+
+  .border {
+    width: 12.5%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    padding: 8px;
+    height: 100vh;
+    filter: brightness(1);
+    image-rendering: pixelated;
+  }
+  .border.fadeout {
+    animation: fadeout 0.2s;
+  }
+  .border.fadein {
+    animation: fadein 10s;
+  }
+  .center {
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0;
+  }
+
+  button, input[type=button] {
+    outline: none;
+    font-family: "PixelMplus10";
+    padding: 2px 4px;
+    font-size: 20px;
+  }
+
+  button {
+    background-color: #f3e1f7;
+    border-style: outset;
+    border: 2px solid transparent;
+    border-image-repeat: round;
+    border-image-slice: 2;
+    border-image-source: url('button-frame-outset.png');
+    background-color: #f3e1f7;
+  }
+
+  button:checked{
+    background-color: #f3e1f7;
+    border-style: outset;
+    border: 2px solid transparent;
+    border-image-repeat: round;
+    border-image-slice: 2;
+    border-image-source: url('button-frame-inset.png');
+    background-color: #f3e1f7;
+  }
+
+  button:active{
+    background-color: #f3e1f7;
+    border-style: outset;
+    border: 2px solid transparent;
+    border-image-repeat: round;
+    border-image-slice: 2;
+    border-image-source: url('button-frame-inset.png');
+    background-color: #f3e1f7;
+  }
+
+  a {
+    font-size: 20px;
+    color: #3e21b7;
+  }
+  
+  #screen_container {
+    position: relative;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: black;
+    display: none;
+    align-items: center;
+  }
+  #vga {
+    object-fit: contain;
+    display: block;
+    height: 100vh !important;
+    width: auto !important;
+    max-width: 100% !important;
+    border: none;
+    margin: auto;
+  }
+  * { margin:0; padding:0; box-sizing: border-box;}
+</style>
+
+<script src="libv86.js"></script>
+<script>
+"use strict";
+
+let imageFileName
+let timeOfDay
+
+window.onload = function() {
+  let diskLoadButton = document.getElementById("diskLoadButton");
+  let diskSaveButton = document.getElementById("diskSaveButton");
+  let fullscreenButton = document.getElementById("fullscreenButton");
+  let border1 = document.getElementById("border1")
+  let border2 = document.getElementById("border2")
+  diskLoadButton.addEventListener("change", emulatorStart);
+    border1.addEventListener('animationend', function(ev) {
+      if (ev.animationName === 'fadeout') {
+        border1.classList.remove("fadeout")
+        border2.classList.remove("fadeout")
+        border1.style.backgroundImage = "url('border-" + timeOfDay + "-1.png')"
+        border2.style.backgroundImage = "url('border-" + timeOfDay + "-2.png')"
+        border1.classList.add("fadein")
+        border2.classList.add("fadein")
+      }
+      if (ev.animationName === 'fadein') {
+        border1.classList.remove("fadein")
+        border2.classList.remove("fadein")
+      }
+    })
+  changeBg();
+  setInterval(function(){ changeBg(); }, 60000);
+}
+
+function downloadHardDisk() {
+  var link = document.createElement("a");
+  var file = emulator.disk_images["hda"].get_as_file();
+  link.href = window.URL.createObjectURL(file);
+  link.download = imageFileName;
+  link.click();
+}
+
+function enterFullscreen() {
+  if (document.getElementById("vga").style.display != "none") {
+    document.documentElement.requestFullscreen();
+    document.getElementById("screen_container").focus
+    navigator.keyboard.lock();
+    emulator.lock_mouse();
+  }
+}
+
+function emulatorStart() {
+    imageFileName = diskLoadButton.files[0].name;
+    diskLoadButton.style.display = "none";
+    diskSaveButton.style.display = "block";
+    fullscreenButton.style.display = "block";
+    document.getElementById("screen_container").style.display = "flex";
+
+    var emulator = window.emulator = new V86Starter({
+        wasm_path: "v86.wasm",
+        memory_size: 256 * 1024 * 1024,
+        vga_memory_size: 8 * 1024 * 1024,
+        screen_container: document.getElementById("screen_container"),
+        bios: {
+            url: "seabios.bin",
+        },
+        vga_bios: {
+            url: "vgabios.bin",
+        },
+        hda: {
+            buffer: diskLoadButton.files[0],
+        },
+        acpi: false,
+        network_relay_url: "wss://relay.widgetry.org/",
+        autostart: true,
+    });
+    document.getElementById("screen_container").onclick = function()
+    {
+        emulator.lock_mouse();
+    };
+};
+function changeBg() {
+    let oldTimeOfDay = (' ' + timeOfDay).slice(1);
+    var now = new Date();
+    var hours = now.getHours();
+    if (hours >= 0) {
+      timeOfDay = "night";
+    }
+    if (hours >= 6) {
+      timeOfDay = "day";
+    }
+    if (hours >= 19) {
+      timeOfDay = "dusk";
+    }
+    if (hours >= 21) {
+      timeOfDay = "night";
+    }
+    //based on hours it will dynamically change the image
+        //1.png, 2.png, ..., 23.png
+    if (timeOfDay != oldTimeOfDay) {
+      border1.classList.add("fadeout")
+      border2.classList.add("fadeout")
+    }
+
+}
+</script>
+
+<!-- A minimal structure for the ScreenAdapter defined in browser/screen.js -->
+<table id="layout_table">
+  <tr>
+    <td id="border1" class="border" valign="top" style='background-image: url("border-day-1.png")'>
+      <input type="file" id="diskLoadButton"></input>
+      <button id="diskSaveButton" style="display: none;" onclick="downloadHardDisk()">Save disk</input>
+    </td>
+    <td class="center" valign="top">
+      <div id="screen_container" style="">
+        <div id="screen"></div>
+        <canvas id="vga"></canvas>
+      </div>
+    </td>
+    <td id="border2" class="border" valign="top" style='background-image: url("border-day-2.png"); text-align: right;'>
+      <button id="fullscreenButton" style="display: none; float: right;" onclick="enterFullscreen()">Fullscreen</button>
+    </td>
+  </tr>
+</table>
