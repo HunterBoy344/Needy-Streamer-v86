@@ -176,7 +176,10 @@ function emulatorStart() {
         wasm_path: "v86.wasm",
         memory_size: 256 * 1024 * 1024,
         vga_memory_size: 16 * 1024 * 1024,
-        screen_container: document.getElementById("screen_container"),
+        screen: {
+          container: document.getElementById("screen_container"),
+          scale: 0,
+        },
         bios: {
             url: "seabios.bin",
         },
@@ -187,7 +190,10 @@ function emulatorStart() {
             buffer: diskLoadButton.files[0],
         },
         acpi: false,
-        network_relay_url: "wss://relay.widgetry.org/",
+        net_device: {
+          relay_url: "wss://relay.widgetry.org/",
+          type: "ne2k",
+        },
         autostart: true,
     });
     document.getElementById("screen_container").onclick = function()
