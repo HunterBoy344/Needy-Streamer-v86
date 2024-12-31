@@ -9800,7 +9800,6 @@ function $NetworkAdapter$$($url$jscomp$24$$, $bus$jscomp$23$$, $id$jscomp$10$$) 
   this.reconnect_interval = 10000;
   this.last_connect_attempt = Date.now() - this.reconnect_interval;
   this.send_queue_limit = 64;
-  this.destroyed = !1;
   this.bus.register("net" + this.id + "-send", function($data$jscomp$197$$) {
     this.send($data$jscomp$197$$);
   }, this);
@@ -9809,7 +9808,8 @@ $NetworkAdapter$$.prototype.handle_message = function($e$jscomp$37$$) {
   this.bus && this.bus.send("net" + this.id + "-receive", new Uint8Array($e$jscomp$37$$.data));
 };
 $NetworkAdapter$$.prototype.handle_close = function() {
-  this.destroyed || (this.connect(), setTimeout(this.connect.bind(this), this.reconnect_interval));
+  this.connect();
+  setTimeout(this.connect.bind(this), this.reconnect_interval);
 };
 $NetworkAdapter$$.prototype.handle_open = function() {
   for (var $i$jscomp$98$$ = 0; $i$jscomp$98$$ < this.send_queue.length; $i$jscomp$98$$++) {
@@ -9820,7 +9820,6 @@ $NetworkAdapter$$.prototype.handle_open = function() {
 $NetworkAdapter$$.prototype.handle_error = function() {
 };
 $NetworkAdapter$$.prototype.destroy = function() {
-  this.destroyed = !0;
   this.socket && this.socket.close();
 };
 $NetworkAdapter$$.prototype.connect = function() {
@@ -10050,8 +10049,8 @@ $V86$$.prototype.continue_init = async function($emulator$jscomp$1$$, $options$j
   $settings$jscomp$3$$.virtio_net = $options$jscomp$44$$.virtio_net;
   $settings$jscomp$3$$.screen_options = $options$jscomp$44$$.screen_options;
   if ($add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$ = $options$jscomp$44$$.network_relay_url || $options$jscomp$44$$.net_device && $options$jscomp$44$$.net_device.relay_url) {
-    "fetch" === $add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$ ? this.network_adapter = new $FetchNetworkAdapter$$(this.bus, $options$jscomp$44$$.net_device) : $add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$.startsWith("wisp://") || $add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$.startsWith("wisps://") ? this.network_adapter = new $WispNetworkAdapter$$($add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$, this.bus, $options$jscomp$44$$.net_device) : 
-    this.network_adapter = new $NetworkAdapter$$($add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$, this.bus);
+    "fetch" === $add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$ ? this.network_adapter = new $FetchNetworkAdapter$$(this.bus) : $add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$.startsWith("wisp://") || $add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$.startsWith("wisps://") ? this.network_adapter = new $WispNetworkAdapter$$($add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$, this.bus, $options$jscomp$44$$) : this.network_adapter = new $NetworkAdapter$$($add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$, 
+    this.bus);
   }
   $settings$jscomp$3$$.net_device = $options$jscomp$44$$.net_device || {type:"ne2k"};
   $add_file_boot_order$jscomp$1_fs_url_relay_url_screen_options$$ = $options$jscomp$44$$.screen || {};
@@ -11156,10 +11155,10 @@ function $WispNetworkAdapter$$($wisp_url$$, $bus$jscomp$25$$, $config$jscomp$6$$
   }));
   this.masquerade = void 0 === $config$jscomp$6$$.masquerade || !!$config$jscomp$6$$.masquerade;
   this.vm_mac = new Uint8Array(6);
-  this.dns_method = $config$jscomp$6$$.dns_method || "doh";
-  this.doh_server = $config$jscomp$6$$.doh_server;
   this.tcp_conn = {};
   this.eth_encoder_buf = $create_eth_encoder_buf$$();
+  this.dns_method = "doh";
+  this.doh_server = $config$jscomp$6$$.doh_server;
   this.bus.register("net" + this.id + "-mac", function($mac$jscomp$1$$) {
     this.vm_mac = new Uint8Array($mac$jscomp$1$$.split(":").map(function($x$jscomp$115$$) {
       return parseInt($x$jscomp$115$$, 16);
@@ -11296,10 +11295,9 @@ function $FetchNetworkAdapter$$($bus$jscomp$26$$, $config$jscomp$7$$) {
   }));
   this.masquerade = void 0 === $config$jscomp$7$$.masquerade || !!$config$jscomp$7$$.masquerade;
   this.vm_mac = new Uint8Array(6);
-  this.dns_method = $config$jscomp$7$$.dns_method || "static";
-  this.doh_server = $config$jscomp$7$$.doh_server;
   this.tcp_conn = {};
   this.eth_encoder_buf = $create_eth_encoder_buf$$();
+  this.dns_method = "static";
   this.cors_proxy = $config$jscomp$7$$.cors_proxy;
   this.bus.register("net" + this.id + "-mac", function($mac$jscomp$2$$) {
     this.vm_mac = new Uint8Array($mac$jscomp$2$$.split(":").map(function($x$jscomp$119$$) {
