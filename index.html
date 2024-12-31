@@ -172,7 +172,7 @@ function emulatorStart() {
     fullscreenButton.style.display = "block";
     document.getElementById("screen_container").style.display = "flex";
 
-    var emulator = window.emulator = new V86Starter({
+    var emulator = window.emulator = new V86({
         wasm_path: "v86.wasm",
         memory_size: 256 * 1024 * 1024,
         vga_memory_size: 16 * 1024 * 1024,
