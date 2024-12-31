@@ -187,10 +187,7 @@ function emulatorStart() {
             buffer: diskLoadButton.files[0],
         },
         acpi: false,
-        net_device: {
-          relay_url: "wss://relay.widgetry.org/",
-          type: "ne2k",
-        },
+        network_relay_url: "wss://relay.widgetry.org/",
         autostart: true,
     });
     document.getElementById("screen_container").onclick = function()
